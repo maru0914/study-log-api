@@ -57,3 +57,15 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+/src/generated/prisma
+
+# prisma init が足した AI 向けのファイル（このリポジトリでは使わない）
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# SQLite のファイル
+*.db
+*.db-journal
