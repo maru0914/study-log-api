@@ -13,8 +13,9 @@ npm run test:e2e    # e2e テスト
 
 ## Laravel ↔ NestJS 対応表
 
-| Laravel                             | NestJS                              | このリポジトリの場所  |
-| ----------------------------------- | ----------------------------------- | --------------------- |
-| ServiceProvider（部品を登録する所） | Module（`@Module`）                 | src/app.module.ts     |
-| Controller                          | Controller（`@Controller`・`@Get`） | src/app.controller.ts |
-| サービスクラス                      | Service（`@Injectable`）            | src/app.service.ts    |
+| Laravel                             | NestJS                              | このリポジトリの場所            |
+| ----------------------------------- | ----------------------------------- | ------------------------------- |
+| ServiceProvider（部品を登録する所） | Module（`@Module`）                 | src/app.module.ts               |
+| Controller                          | Controller（`@Controller`・`@Get`） | src/app.controller.ts           |
+| サービスクラス                      | Service（`@Injectable`）            | src/app.service.ts              |
+| Pest の it / expect                 | Vitest の describe / it / expect    | src/study-logs/duration.spec.ts |
