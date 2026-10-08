@@ -13,10 +13,11 @@ npm run test:e2e    # e2e テスト
 
 ## Laravel ↔ NestJS 対応表
 
-| Laravel                                             | NestJS                                           | このリポジトリの場所            |
-| --------------------------------------------------- | ------------------------------------------------ | ------------------------------- |
-| ServiceProvider（部品を登録する所）                 | Module（`@Module`）                              | src/app.module.ts               |
-| Controller                                          | Controller（`@Controller`・`@Get`）              | src/app.controller.ts           |
-| サービスクラス                                      | Service（`@Injectable`）                         | src/app.service.ts              |
-| Pest の it / expect                                 | Vitest の describe / it / expect                 | src/study-logs/duration.spec.ts |
-| migration と Eloquent モデル（php artisan migrate） | schema.prisma の model（npx prisma migrate dev） | prisma/schema.prisma            |
+| Laravel                                             | NestJS                                                      | このリポジトリの場所                                       |
+| --------------------------------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------- |
+| ServiceProvider（部品を登録する所）                 | Module（`@Module`）                                         | src/app.module.ts                                          |
+| Controller                                          | Controller（`@Controller`・`@Get`）                         | src/app.controller.ts                                      |
+| サービスクラス                                      | Service（`@Injectable`）                                    | src/app.service.ts                                         |
+| Pest の it / expect                                 | Vitest の describe / it / expect                            | src/study-logs/duration.spec.ts                            |
+| migration と Eloquent モデル（php artisan migrate） | schema.prisma の model（npx prisma migrate dev）            | prisma/schema.prisma                                       |
+| サービスコンテナ（コンストラクタで受け取る）        | DI（module の providers に登録して constructor で受け取る） | src/app.module.ts、src/study-logs/study-logs.controller.ts |
