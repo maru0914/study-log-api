@@ -46,9 +46,28 @@ describe('GET /study-logs (e2e)', () => {
 
   it('2件入れると2件返る', async () => {
     const response = await request(app.getHttpServer())
-      .get('/study-logs')
+      .get('/study-logs?yearMonth=202610')
       .expect(200);
 
-    expect(response.body).toHaveLength(2);
+    expect(response.body.logs).toHaveLength(2);
+  });
+
+  it('今月の60分と30分で totalMinutes が 90、前月の1件は一覧に入らない', async () => {
+    await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-09-30'),
+        subject: 'TypeScript',
+        durationMinutes: 45,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/study-logs?yearMonth=202610')
+      .expect(200);
+
+    expect(response.body.totalMinutes).toBe(90);
+    expect(response.body.logs).toHaveLength(2);
+    expect(response.body.logs[0].subject).toBe('Prisma');
   });
 });
