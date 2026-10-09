@@ -66,8 +66,18 @@ describe('GET /study-logs (e2e)', () => {
       .get('/study-logs?yearMonth=202610')
       .expect(200);
 
+    expect(response.body.yearMonth).toBe('202610');
     expect(response.body.totalMinutes).toBe(90);
     expect(response.body.logs).toHaveLength(2);
     expect(response.body.logs[0].subject).toBe('Prisma');
+  });
+  it('yearMonth=2026-10 のように形が違うと400', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/study-logs?yearMonth=2026-10')
+      .expect(400);
+
+    expect(response.body.message).toBe(
+      'yearMonth は YYYYMM の形で指定してください（例: 202610）',
+    );
   });
 });

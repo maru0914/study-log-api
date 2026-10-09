@@ -1,6 +1,6 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
-import { currentYearMonth, monthRange } from './month-range.js';
+import { YearMonth } from '../value-objects/year-month.js';
 
 @Controller('study-logs')
 export class StudyLogsController {
@@ -9,8 +9,16 @@ export class StudyLogsController {
   @Get()
   async findAll(@Query('yearMonth') yearMonth?: string) {
     // ① どの月かを決める
-    const ym = yearMonth ?? currentYearMonth();
-    const { from, to } = monthRange(ym);
+    let ym: YearMonth;
+    try {
+      ym = yearMonth ? YearMonth.fromString(yearMonth) : YearMonth.current();
+    } catch {
+      throw new BadRequestException(
+        'yearMonth は YYYYMM の形で指定してください（例: 202610）',
+      );
+    }
+    const from = ym.toDate();
+    const to = ym.next().toDate();
 
     // ② その月の記録を、新しい順で取る
     const logs = await this.prisma.studyLog.findMany({
@@ -25,6 +33,6 @@ export class StudyLogsController {
     );
 
     // ④ 返す
-    return { yearMonth: ym, totalMinutes, logs };
+    return { yearMonth: ym.toString(), totalMinutes, logs };
   }
 }
