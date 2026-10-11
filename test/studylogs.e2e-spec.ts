@@ -1,11 +1,12 @@
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
 import { PrismaService } from './../src/prisma.service.js';
 
-describe('GET /study-logs (e2e)', () => {
+describe('/study-logs (e2e)', () => {
   let app: INestApplication<App>;
   let prisma: PrismaService;
 
@@ -15,6 +16,7 @@ describe('GET /study-logs (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     await app.init();
 
     // RefreshDatabase に当たる: 表を空にする（dev.db の中身も消える）
@@ -79,5 +81,43 @@ describe('GET /study-logs (e2e)', () => {
     expect(response.body.message).toBe(
       'yearMonth は YYYYMM の形で指定してください（例: 202610）',
     );
+  });
+
+  // agahh の Pest『allows a user to create a study log』を移したもの
+  it('10:00〜11:30 で登録すると201で、durationMinutes が 90', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/study-logs')
+      .send({
+        studiedAt: '2026-10-11',
+        subject: '数学 問題集',
+        startedTime: '10:00',
+        endedTime: '11:30',
+        notes: '章末問題',
+      })
+      .expect(201);
+
+    expect(response.body.durationMinutes).toBe(90);
+    expect(response.body.notes).toBe('章末問題');
+
+    // assertDatabaseHas に当たる: その行が DB に1件ある
+    const count = await prisma.studyLog.count({
+      where: { userId: 1, subject: '数学 問題集', durationMinutes: 90 },
+    });
+    expect(count).toBe(1);
+  });
+
+  // StoreRequest の 'subject' => ['required', …] に当たる
+  it('subject が空なら400', async () => {
+    const response = await request(app.getHttpServer())
+      .post('/study-logs')
+      .send({
+        studiedAt: '2026-10-11',
+        subject: '',
+        startedTime: '10:00',
+        endedTime: '11:30',
+      })
+      .expect(400);
+
+    expect(response.body.message).toContain('subject should not be empty');
   });
 });

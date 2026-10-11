@@ -1,6 +1,15 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { YearMonth } from '../value-objects/year-month.js';
+import { durationMinutes } from './duration.js';
+import { CreateStudyLogDto } from './dto/create-study-log.dto.js';
 
 @Controller('study-logs')
 export class StudyLogsController {
@@ -34,5 +43,27 @@ export class StudyLogsController {
 
     // ④ 返す
     return { yearMonth: ym.toString(), totalMinutes, logs };
+  }
+
+  // ① 受け取る（DTO の決まりを通った本文だけが dto に来る）
+  @Post()
+  async create(@Body() dto: CreateStudyLogDto) {
+    // ② 日付と時刻をつないで、始めと終わりの日時と、分を作る
+    const startedAt = new Date(`${dto.studiedAt}T${dto.startedTime}:00Z`);
+    const endedAt = new Date(`${dto.studiedAt}T${dto.endedTime}:00Z`);
+    const minutes = durationMinutes(dto.startedTime, dto.endedTime);
+
+    // ③ 保存して、保存した1件を返す
+    return this.prisma.studyLog.create({
+      data: {
+        userId: 1, // ログインは14回目。それまでは 1 で固定
+        studiedAt: new Date(dto.studiedAt),
+        startedAt,
+        endedAt,
+        subject: dto.subject,
+        durationMinutes: minutes,
+        notes: dto.notes,
+      },
+    });
   }
 }
