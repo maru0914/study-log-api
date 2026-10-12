@@ -120,4 +120,65 @@ describe('/study-logs (e2e)', () => {
 
     expect(response.body.message).toContain('subject should not be empty');
   });
+
+  // agahh の StoreRequest の withValidator の after() に当たる（agahh に Pest のテストは無い）
+  it('10:00〜11:00 がある日に 10:30〜11:30 で登録すると422', async () => {
+    // ファクトリに当たる: 10:00〜11:00 の記録を1件入れる
+    await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-11'),
+        startedAt: new Date('2026-10-11T10:00:00Z'),
+        endedAt: new Date('2026-10-11T11:00:00Z'),
+        subject: '英語 長文',
+        durationMinutes: 60,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/study-logs')
+      .send({
+        studiedAt: '2026-10-11',
+        subject: '数学 問題集',
+        startedTime: '10:30',
+        endedTime: '11:30',
+      })
+      .expect(422);
+
+    expect(response.body.message).toBe(
+      '選択した時間帯は既存の学習と重複しています。',
+    );
+
+    // assertDatabaseMissing に当たる: 断った1件は DB に無い
+    const count = await prisma.studyLog.count({
+      where: { subject: '数学 問題集' },
+    });
+    expect(count).toBe(0);
+  });
+
+  // 端が接するだけ（前からある記録の終わり 11:00 = 今回の始め 11:00）は重なりにしない
+  it('端が接するだけの 11:00〜12:00 は201', async () => {
+    await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-11'),
+        startedAt: new Date('2026-10-11T10:00:00Z'),
+        endedAt: new Date('2026-10-11T11:00:00Z'),
+        subject: '英語 長文',
+        durationMinutes: 60,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .post('/study-logs')
+      .send({
+        studiedAt: '2026-10-11',
+        subject: '数学 問題集',
+        startedTime: '11:00',
+        endedTime: '12:00',
+      })
+      .expect(201);
+
+    expect(response.body.durationMinutes).toBe(60);
+  });
 });

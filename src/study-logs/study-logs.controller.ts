@@ -5,6 +5,7 @@ import {
   Get,
   Post,
   Query,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { YearMonth } from '../value-objects/year-month.js';
@@ -53,7 +54,26 @@ export class StudyLogsController {
     const endedAt = new Date(`${dto.studiedAt}T${dto.endedTime}:00Z`);
     const minutes = durationMinutes(dto.startedTime, dto.endedTime);
 
-    // ③ 保存して、保存した1件を返す
+    // ③ 時間帯が重なる記録があれば、422で断る
+    const overlaps = await this.prisma.studyLog.count({
+      where: {
+        userId: 1,
+        startedAt: {
+          lt: endedAt,
+        },
+        endedAt: {
+          gt: startedAt,
+        },
+      },
+    });
+
+    if (overlaps > 0) {
+      throw new UnprocessableEntityException(
+        '選択した時間帯は既存の学習と重複しています。',
+      );
+    }
+
+    // ④ 保存して、保存した1件を返す
     return this.prisma.studyLog.create({
       data: {
         userId: 1, // ログインは14回目。それまでは 1 で固定
