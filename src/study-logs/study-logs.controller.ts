@@ -3,6 +3,9 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
   UnprocessableEntityException,
@@ -85,5 +88,21 @@ export class StudyLogsController {
         notes: dto.notes,
       },
     });
+  }
+  // ① URL の :id を受け取る — URL から届くのは文字列なので、数に変えてから DB に渡す
+  @Get(':id')
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    // ② その id の1件を取る（無ければ null）
+    const log = await this.prisma.studyLog.findUnique({ where: { id } });
+
+    // ③ 無ければ404で断る
+    // 〔イ〕log が null なら、NotFoundException を throw する
+    if (log === null) {
+      throw new NotFoundException('学習記録が見つかりません。');
+    }
+
+    // ④ 返す
+
+    return log;
   }
 }

@@ -181,4 +181,37 @@ describe('/study-logs (e2e)', () => {
 
     expect(response.body.durationMinutes).toBe(60);
   });
+
+  // agahh の show に当たる（agahh の Pest に、自分の記録を開くテストは無い）
+  it('ある id で200と、その1件', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get(`/study-logs/${log.id}`)
+      .expect(200);
+
+    expect(response.body.id).toBe(log.id);
+    expect(response.body.subject).toBe('英語 長文');
+  });
+
+  // findOrFail に当たる: 無い id は404
+  it('無い id は404', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/study-logs/999999')
+      .expect(404);
+
+    expect(response.body.message).toBe('学習記録が見つかりません。');
+  });
+
+  // 数でない id は、DB を見る前に400（Laravel では404）
+  it("'abc' は400", async () => {
+    await request(app.getHttpServer()).get('/study-logs/abc').expect(400);
+  });
 });
