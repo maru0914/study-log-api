@@ -31,4 +31,4 @@ npm run test:e2e    # e2e テスト
 
 ## 次にやる作業
 
-- 14回目: トークンで誰の記録かを決める（User の表に apiToken の列を足して migrate し、Guard を作る。agahh の Route::middleware('auth') に当たる）
+- ApiTokenGuard で Authorization: Bearer のトークンを読み、prisma.user.findUnique で User を引く（無ければ UnauthorizedException で 401）

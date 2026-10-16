@@ -28,3 +28,11 @@ model StudyLog {
   @@index([userId, startedAt])
   @@map("study_logs")
 }
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  apiToken String @unique @map("api_token")
+
+  @@map("users")
+}
