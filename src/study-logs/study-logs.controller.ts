@@ -9,12 +9,15 @@ import {
   Post,
   Query,
   UnprocessableEntityException,
+  UseGuards,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service.js';
 import { YearMonth } from '../value-objects/year-month.js';
 import { durationMinutes } from './duration.js';
 import { CreateStudyLogDto } from './dto/create-study-log.dto.js';
+import { ApiTokenGuard } from '../auth/api-token.guard.js';
 
+@UseGuards(ApiTokenGuard)
 @Controller('study-logs')
 export class StudyLogsController {
   constructor(private readonly prisma: PrismaService) {}

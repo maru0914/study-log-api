@@ -22,6 +22,10 @@ describe('/study-logs (e2e)', () => {
     // RefreshDatabase に当たる: 表を空にする（dev.db の中身も消える）
     prisma = app.get(PrismaService);
     await prisma.studyLog.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.user.create({
+      data: { id: 1, name: 'me', apiToken: 'test-token' },
+    });
 
     // ファクトリに当たる: 2件入れる
     await prisma.studyLog.createMany({
@@ -49,6 +53,7 @@ describe('/study-logs (e2e)', () => {
   it('2件入れると2件返る', async () => {
     const response = await request(app.getHttpServer())
       .get('/study-logs?yearMonth=202610')
+      .set('Authorization', 'Bearer test-token')
       .expect(200);
 
     expect(response.body.logs).toHaveLength(2);
@@ -66,6 +71,7 @@ describe('/study-logs (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .get('/study-logs?yearMonth=202610')
+      .set('Authorization', 'Bearer test-token')
       .expect(200);
 
     expect(response.body.yearMonth).toBe('202610');
@@ -76,6 +82,7 @@ describe('/study-logs (e2e)', () => {
   it('yearMonth=2026-10 のように形が違うと400', async () => {
     const response = await request(app.getHttpServer())
       .get('/study-logs?yearMonth=2026-10')
+      .set('Authorization', 'Bearer test-token')
       .expect(400);
 
     expect(response.body.message).toBe(
@@ -87,6 +94,7 @@ describe('/study-logs (e2e)', () => {
   it('10:00〜11:30 で登録すると201で、durationMinutes が 90', async () => {
     const response = await request(app.getHttpServer())
       .post('/study-logs')
+      .set('Authorization', 'Bearer test-token')
       .send({
         studiedAt: '2026-10-11',
         subject: '数学 問題集',
@@ -110,6 +118,7 @@ describe('/study-logs (e2e)', () => {
   it('subject が空なら400', async () => {
     const response = await request(app.getHttpServer())
       .post('/study-logs')
+      .set('Authorization', 'Bearer test-token')
       .send({
         studiedAt: '2026-10-11',
         subject: '',
@@ -137,6 +146,7 @@ describe('/study-logs (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/study-logs')
+      .set('Authorization', 'Bearer test-token')
       .send({
         studiedAt: '2026-10-11',
         subject: '数学 問題集',
@@ -171,6 +181,7 @@ describe('/study-logs (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .post('/study-logs')
+      .set('Authorization', 'Bearer test-token')
       .send({
         studiedAt: '2026-10-11',
         subject: '数学 問題集',
@@ -195,6 +206,7 @@ describe('/study-logs (e2e)', () => {
 
     const response = await request(app.getHttpServer())
       .get(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
       .expect(200);
 
     expect(response.body.id).toBe(log.id);
@@ -205,6 +217,7 @@ describe('/study-logs (e2e)', () => {
   it('無い id は404', async () => {
     const response = await request(app.getHttpServer())
       .get('/study-logs/999999')
+      .set('Authorization', 'Bearer test-token')
       .expect(404);
 
     expect(response.body.message).toBe('学習記録が見つかりません。');
@@ -212,6 +225,13 @@ describe('/study-logs (e2e)', () => {
 
   // 数でない id は、DB を見る前に400（Laravel では404）
   it("'abc' は400", async () => {
-    await request(app.getHttpServer()).get('/study-logs/abc').expect(400);
+    await request(app.getHttpServer())
+      .get('/study-logs/abc')
+      .set('Authorization', 'Bearer test-token')
+      .expect(400);
+  });
+
+  it('ヘッダーなしだと401', async () => {
+    await request(app.getHttpServer()).get('/study-logs').expect(401);
   });
 });
