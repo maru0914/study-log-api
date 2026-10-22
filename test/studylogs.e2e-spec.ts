@@ -26,6 +26,9 @@ describe('/study-logs (e2e)', () => {
     await prisma.user.create({
       data: { id: 1, name: 'me', apiToken: 'test-token' },
     });
+    await prisma.user.create({
+      data: { id: 2, name: 'other', apiToken: 'other-token' },
+    });
 
     // ファクトリに当たる: 2件入れる
     await prisma.studyLog.createMany({
@@ -233,5 +236,20 @@ describe('/study-logs (e2e)', () => {
 
   it('ヘッダーなしだと401', async () => {
     await request(app.getHttpServer()).get('/study-logs').expect(401);
+  });
+
+  it('他の人の記録は404', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 2,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+    await request(app.getHttpServer())
+      .get(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .expect(404);
   });
 });

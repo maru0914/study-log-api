@@ -16,6 +16,8 @@ import { YearMonth } from '../value-objects/year-month.js';
 import { durationMinutes } from './duration.js';
 import { CreateStudyLogDto } from './dto/create-study-log.dto.js';
 import { ApiTokenGuard } from '../auth/api-token.guard.js';
+import { CurrentUser } from '../auth/current-user.decorator.js';
+import type { User } from '../generated/prisma/client.js';
 
 @UseGuards(ApiTokenGuard)
 @Controller('study-logs')
@@ -23,7 +25,10 @@ export class StudyLogsController {
   constructor(private readonly prisma: PrismaService) {}
 
   @Get()
-  async findAll(@Query('yearMonth') yearMonth?: string) {
+  async findAll(
+    @CurrentUser() user: User,
+    @Query('yearMonth') yearMonth?: string,
+  ) {
     // ① どの月かを決める
     let ym: YearMonth;
     try {
@@ -38,7 +43,7 @@ export class StudyLogsController {
 
     // ② その月の記録を、新しい順で取る
     const logs = await this.prisma.studyLog.findMany({
-      where: { studiedAt: { gte: from, lt: to } },
+      where: { userId: user.id, studiedAt: { gte: from, lt: to } },
       orderBy: { studiedAt: 'desc' },
     });
 
@@ -54,7 +59,7 @@ export class StudyLogsController {
 
   // ① 受け取る（DTO の決まりを通った本文だけが dto に来る）
   @Post()
-  async create(@Body() dto: CreateStudyLogDto) {
+  async create(@Body() dto: CreateStudyLogDto, @CurrentUser() user: User) {
     // ② 日付と時刻をつないで、始めと終わりの日時と、分を作る
     const startedAt = new Date(`${dto.studiedAt}T${dto.startedTime}:00Z`);
     const endedAt = new Date(`${dto.studiedAt}T${dto.endedTime}:00Z`);
@@ -63,7 +68,7 @@ export class StudyLogsController {
     // ③ 時間帯が重なる記録があれば、422で断る
     const overlaps = await this.prisma.studyLog.count({
       where: {
-        userId: 1,
+        userId: user.id,
         startedAt: {
           lt: endedAt,
         },
@@ -82,7 +87,7 @@ export class StudyLogsController {
     // ④ 保存して、保存した1件を返す
     return this.prisma.studyLog.create({
       data: {
-        userId: 1, // ログインは14回目。それまでは 1 で固定
+        userId: user.id,
         studiedAt: new Date(dto.studiedAt),
         startedAt,
         endedAt,
@@ -94,9 +99,14 @@ export class StudyLogsController {
   }
   // ① URL の :id を受け取る — URL から届くのは文字列なので、数に変えてから DB に渡す
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
     // ② その id の1件を取る（無ければ null）
-    const log = await this.prisma.studyLog.findUnique({ where: { id } });
+    const log = await this.prisma.studyLog.findUnique({
+      where: { id, userId: user.id },
+    });
 
     // ③ 無ければ404で断る
     // 〔イ〕log が null なら、NotFoundException を throw する
