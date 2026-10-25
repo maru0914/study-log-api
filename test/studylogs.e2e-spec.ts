@@ -5,6 +5,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types.js';
 import { AppModule } from './../src/app.module.js';
 import { PrismaService } from './../src/prisma.service.js';
+import { StudyLog } from '../src/generated/prisma/client.js';
 
 describe('/study-logs (e2e)', () => {
   let app: INestApplication<App>;
@@ -251,5 +252,21 @@ describe('/study-logs (e2e)', () => {
       .get(`/study-logs/${log.id}`)
       .set('Authorization', 'Bearer test-token')
       .expect(404);
+  });
+
+  it('他の人の記録が一覧ででないこと', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 2,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+    const response = await request(app.getHttpServer())
+      .get('/study-logs')
+      .set('Authorization', 'Bearer test-token')
+      .expect(200);
+    expect(response.body.logs.map((l: StudyLog) => l.id)).not.toContain(log.id);
   });
 });
