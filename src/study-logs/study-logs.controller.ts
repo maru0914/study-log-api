@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UnprocessableEntityException,
@@ -21,6 +22,7 @@ import { ApiTokenGuard } from '../auth/api-token.guard.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { User } from '../generated/prisma/client.js';
 import { toResponse } from './toResponse.js';
+import { UpdateStudyLogDto } from './dto/update-study-log.dto.js';
 
 @UseGuards(ApiTokenGuard)
 @Controller('study-logs')
@@ -104,6 +106,66 @@ export class StudyLogsController {
       }),
     );
   }
+
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateStudyLogDto,
+    @CurrentUser() user: User,
+  ) {
+    const log = await this.prisma.studyLog.findUnique({
+      where: { id, userId: user.id },
+    });
+
+    if (log === null) {
+      throw new NotFoundException('学習記録が見つかりません。');
+    }
+
+    let timeData = {};
+    if (dto.studiedAt && dto.startedTime && dto.endedTime) {
+      const startedAt = new Date(`${dto.studiedAt}T${dto.startedTime}:00Z`);
+      const endedAt = new Date(`${dto.studiedAt}T${dto.endedTime}:00Z`);
+
+      // ③ 時間帯が重なる記録があれば、422で断る
+      const overlaps = await this.prisma.studyLog.count({
+        where: {
+          userId: user.id,
+          NOT: { id },
+          startedAt: {
+            lt: endedAt,
+          },
+          endedAt: {
+            gt: startedAt,
+          },
+        },
+      });
+
+      if (overlaps > 0) {
+        throw new UnprocessableEntityException(
+          '選択した時間帯は既存の学習と重複しています。',
+        );
+      }
+
+      timeData = {
+        studiedAt: new Date(dto.studiedAt),
+        startedAt,
+        endedAt,
+        durationMinutes: durationMinutes(dto.startedTime, dto.endedTime),
+      };
+    }
+
+    const updated = await this.prisma.studyLog.update({
+      where: { id },
+      data: {
+        subject: dto.subject,
+        notes: dto.notes,
+        ...timeData,
+      },
+    });
+
+    return toResponse(updated);
+  }
+
   // ① URL の :id を受け取る — URL から届くのは文字列なので、数に変えてから DB に渡す
   @Get(':id')
   async findOne(
