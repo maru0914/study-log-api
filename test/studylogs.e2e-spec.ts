@@ -269,4 +269,36 @@ describe('/study-logs (e2e)', () => {
       .expect(200);
     expect(response.body.logs.map((l: StudyLog) => l.id)).not.toContain(log.id);
   });
+
+  it('自分の記録の削除は204', async () => {
+    const logs = await prisma.studyLog.findMany({
+      where: { userId: 1 },
+    });
+    const log = logs[0];
+    await request(app.getHttpServer())
+      .delete(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .expect(204);
+
+    const count = await prisma.studyLog.count({ where: { id: log.id } });
+    expect(count).toBe(0);
+  });
+
+  it('他人の記録の削除は404', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 2,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+    await request(app.getHttpServer())
+      .delete(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .expect(404);
+
+    const count = await prisma.studyLog.count({ where: { id: log.id } });
+    expect(count).toBe(1);
+  });
 });

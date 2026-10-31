@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -117,5 +119,20 @@ export class StudyLogsController {
     // ④ 返す
 
     return log;
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  async deleteOne(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user: User,
+  ) {
+    const result = await this.prisma.studyLog.deleteMany({
+      where: { id, userId: user.id },
+    });
+
+    if (result.count === 0) {
+      throw new NotFoundException('学習記録が見つかりません。');
+    }
   }
 }
