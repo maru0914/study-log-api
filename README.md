@@ -33,4 +33,4 @@ npm run test:e2e    # e2e テスト
 
 ## 次にやる作業
 
-- 次: 21回目 README の残り（決めたこと3つと理由・Pest と Vitest のテストの対応・対応表に DELETE と CI の行を足す）
+- 次: 18回目の続き（PATCH を見ずに書き直す・e2e 3本）→ 21回目 README の残り
