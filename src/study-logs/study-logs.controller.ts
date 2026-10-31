@@ -20,6 +20,7 @@ import { CreateStudyLogDto } from './dto/create-study-log.dto.js';
 import { ApiTokenGuard } from '../auth/api-token.guard.js';
 import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { User } from '../generated/prisma/client.js';
+import { toResponse } from './toResponse.js';
 
 @UseGuards(ApiTokenGuard)
 @Controller('study-logs')
@@ -44,10 +45,12 @@ export class StudyLogsController {
     const to = ym.next().toDate();
 
     // ② その月の記録を、新しい順で取る
-    const logs = await this.prisma.studyLog.findMany({
-      where: { userId: user.id, studiedAt: { gte: from, lt: to } },
-      orderBy: { studiedAt: 'desc' },
-    });
+    const logs = (
+      await this.prisma.studyLog.findMany({
+        where: { userId: user.id, studiedAt: { gte: from, lt: to } },
+        orderBy: { studiedAt: 'desc' },
+      })
+    ).map(toResponse);
 
     // ③ 分を足す
     const totalMinutes = logs.reduce(
@@ -87,17 +90,19 @@ export class StudyLogsController {
     }
 
     // ④ 保存して、保存した1件を返す
-    return this.prisma.studyLog.create({
-      data: {
-        userId: user.id,
-        studiedAt: new Date(dto.studiedAt),
-        startedAt,
-        endedAt,
-        subject: dto.subject,
-        durationMinutes: minutes,
-        notes: dto.notes,
-      },
-    });
+    return toResponse(
+      await this.prisma.studyLog.create({
+        data: {
+          userId: user.id,
+          studiedAt: new Date(dto.studiedAt),
+          startedAt,
+          endedAt,
+          subject: dto.subject,
+          durationMinutes: minutes,
+          notes: dto.notes,
+        },
+      }),
+    );
   }
   // ① URL の :id を受け取る — URL から届くのは文字列なので、数に変えてから DB に渡す
   @Get(':id')
@@ -118,7 +123,7 @@ export class StudyLogsController {
 
     // ④ 返す
 
-    return log;
+    return toResponse(log);
   }
 
   @Delete(':id')

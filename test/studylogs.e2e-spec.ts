@@ -110,6 +110,7 @@ describe('/study-logs (e2e)', () => {
 
     expect(response.body.durationMinutes).toBe(90);
     expect(response.body.notes).toBe('章末問題');
+    expect(response.body.userId).toBeUndefined();
 
     // assertDatabaseHas に当たる: その行が DB に1件ある
     const count = await prisma.studyLog.count({
