@@ -18,9 +18,9 @@ jobs:
           cache: npm
       
       - run: npm ci
-      - run: npm prisma generate
-      - run: npm tsc --noEmit
-      - run: npm oxlint
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npx oxlint
       - run: npm test
-      - run: npm prisma migrate deploy
+      - run: npx prisma migrate deploy
       - run: npm run test:e2e
