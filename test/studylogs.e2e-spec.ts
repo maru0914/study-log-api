@@ -302,4 +302,87 @@ describe('/study-logs (e2e)', () => {
     const count = await prisma.studyLog.count({ where: { id: log.id } });
     expect(count).toBe(1);
   });
+
+  it('自分の記録の更新は200', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+    await request(app.getHttpServer())
+      .patch(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .send({
+        studiedAt: '2026-10-12',
+        subject: '数学 問題集更新',
+        startedTime: '10:00',
+        endedTime: '11:30',
+        notes: '章末問題更新',
+      })
+      .expect(200);
+
+    const after = await prisma.studyLog.findUnique({ where: { id: log.id } });
+    expect(after?.subject).toBe('数学 問題集更新');
+  });
+
+  it('他人の記録の更新は404', async () => {
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 2,
+        studiedAt: new Date('2026-10-12'),
+        subject: '英語 長文',
+        durationMinutes: 30,
+      },
+    });
+    await request(app.getHttpServer())
+      .patch(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .send({
+        studiedAt: '2026-10-12',
+        subject: '数学 問題集更新',
+        startedTime: '10:00',
+        endedTime: '11:30',
+        notes: '章末問題更新',
+      })
+      .expect(404);
+  });
+
+  it('時間帯が重なった更新は422', async () => {
+    await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-11'),
+        startedAt: new Date('2026-10-11T10:00:00Z'),
+        endedAt: new Date('2026-10-11T11:00:00Z'),
+        subject: '英語 長文',
+        durationMinutes: 60,
+      },
+    });
+
+    const log = await prisma.studyLog.create({
+      data: {
+        userId: 1,
+        studiedAt: new Date('2026-10-11'),
+        startedAt: new Date('2026-10-11T12:00:00Z'),
+        endedAt: new Date('2026-10-11T13:00:00Z'),
+        subject: '英語 長文',
+        durationMinutes: 60,
+      },
+    });
+
+    await request(app.getHttpServer())
+      .patch(`/study-logs/${log.id}`)
+      .set('Authorization', 'Bearer test-token')
+      .send({
+        studiedAt: '2026-10-11',
+        subject: '数学 問題集更新',
+        startedTime: '10:30',
+        endedTime: '11:00',
+        notes: '章末問題更新',
+      })
+      .expect(422);
+  });
 });

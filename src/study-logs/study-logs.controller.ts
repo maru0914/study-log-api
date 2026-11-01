@@ -126,11 +126,12 @@ export class StudyLogsController {
       const startedAt = new Date(`${dto.studiedAt}T${dto.startedTime}:00Z`);
       const endedAt = new Date(`${dto.studiedAt}T${dto.endedTime}:00Z`);
 
-      // ③ 時間帯が重なる記録があれば、422で断る
       const overlaps = await this.prisma.studyLog.count({
         where: {
           userId: user.id,
-          NOT: { id },
+          NOT: {
+            id,
+          },
           startedAt: {
             lt: endedAt,
           },
