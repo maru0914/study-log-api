@@ -2,6 +2,10 @@
 
 学習記録の JSON API です。Laravel＋Inertia で作った自作アプリ [agahh](https://github.com/maru0914/agahh) の StudyLog（学習記録）の機能を、画面ではなく JSON の API として、NestJS 12 と Prisma 7 で書き直しています（書き直しの途中）。
 
+- **できること**: 学習記録の登録・一覧・1件の取得・更新・削除（トークンで認証し、他の人の記録は見えない・変えられない）。
+- **なぜ書き直したか**: ふだん Laravel で書いている作り（FormRequest・値オブジェクト・ルートモデルバインディングなど）が、TypeScript と NestJS ではどうなるかを、同じ機能で1つずつ比べるため（下の対応表）。
+- **テストと CI**: 単体テスト6件・e2e テスト19件。push のたびに GitHub Actions で型チェック（tsc）・lint（oxlint）・テストを回しています。
+
 ## 動かし方
 
 ```sh
