@@ -35,6 +35,10 @@ npm run test:e2e    # e2e テスト
 | auth:sanctum ミドルウェア（トークンで本人を確かめ、無ければ401）                | Guard（CanActivate）を @UseGuards で付け、見つけた User を request.user に入れる                    | src/auth/api-token.guard.ts、src/study-logs/study-logs.controller.ts        | —                                                                                                                                                                                                                                                                         |
 | `$request->user()` と Policy（他人の記録は見つからない扱い）                    | createParamDecorator で作った @CurrentUser()、where に userId を足し null なら404                   | src/auth/current-user.decorator.ts、src/study-logs/study-logs.controller.ts | —                                                                                                                                                                                                                                                                         |
 
+## API の仕様（openapi.json）
+
+`npm run openapi` で、コード（DTO とコントローラー）から openapi.json を書き出しています（@nestjs/swagger の CLI プラグインで、DTO の項目と必須を読みます）。前の職場では逆に、OpenAPI の仕様を先に人が書き、実装がずれていないかを Dredd で確かめていました。どちらを選ぶかは、実装の進め方で決めます。バックエンドを先に作るならコードから書き出すほうがよく、バックエンドとフロントエンドを並行して作るなら、仕様が先にあったほうが進めやすいと考えています。今は受け取る側（リクエスト）の形だけを書いていて、返す側は型の無いオブジェクトなので、仕様には `type: object` としか出ません。
+
 ## 次にやる作業
 
-- 次: 18回目の続き（PATCH を見ずに書き直す・e2e 3本）→ 21回目 README の残り
+- 次: 23回目 前の openapi.json と比べて、API を壊していないかを oasdiff で確かめる
