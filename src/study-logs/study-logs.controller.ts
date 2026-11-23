@@ -23,6 +23,7 @@ import { CurrentUser } from '../auth/current-user.decorator.js';
 import type { User } from '../generated/prisma/client.js';
 import { toResponse } from './toResponse.js';
 import { UpdateStudyLogDto } from './dto/update-study-log.dto.js';
+import { StudyLogListResponseDto } from './dto/study-log-list-response.dto.js';
 
 @UseGuards(ApiTokenGuard)
 @Controller('study-logs')
@@ -33,7 +34,7 @@ export class StudyLogsController {
   async findAll(
     @CurrentUser() user: User,
     @Query('yearMonth') yearMonth?: string,
-  ) {
+  ): Promise<StudyLogListResponseDto> {
     // ① どの月かを決める
     let ym: YearMonth;
     try {

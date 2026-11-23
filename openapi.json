@@ -37,7 +37,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StudyLogListResponseDto"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -63,7 +70,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/StudyLogResponseDto"
                 }
               }
             }
@@ -103,7 +110,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/StudyLogResponseDto"
                 }
               }
             }
@@ -131,7 +138,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/StudyLogResponseDto"
                 }
               }
             }
@@ -174,6 +181,79 @@
   "servers": [],
   "components": {
     "schemas": {
+      "StudyLogResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "studiedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "endedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "subject": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "number"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "studiedAt",
+          "startedAt",
+          "endedAt",
+          "subject",
+          "durationMinutes",
+          "notes",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "StudyLogListResponseDto": {
+        "type": "object",
+        "properties": {
+          "yearMonth": {
+            "type": "string"
+          },
+          "totalMinutes": {
+            "type": "number"
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StudyLogResponseDto"
+            }
+          }
+        },
+        "required": [
+          "yearMonth",
+          "totalMinutes",
+          "logs"
+        ]
+      },
       "CreateStudyLogDto": {
         "type": "object",
         "properties": {
