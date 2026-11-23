@@ -4,7 +4,6 @@ export class StudyLogResponseDto {
   studiedAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
-  subject: string;
   durationMinutes: number;
   notes: string | null;
   createdAt: Date;

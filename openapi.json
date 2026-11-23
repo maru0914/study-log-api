@@ -201,9 +201,6 @@
             "type": "string",
             "nullable": true
           },
-          "subject": {
-            "type": "string"
-          },
           "durationMinutes": {
             "type": "number"
           },
@@ -225,7 +222,6 @@
           "studiedAt",
           "startedAt",
           "endedAt",
-          "subject",
           "durationMinutes",
           "notes",
           "createdAt",
