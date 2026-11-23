@@ -194,17 +194,13 @@
           },
           "notes": {
             "type": "string"
-          },
-          "place": {
-            "type": "string"
           }
         },
         "required": [
           "studiedAt",
           "subject",
           "startedTime",
-          "endedTime",
-          "place"
+          "endedTime"
         ]
       },
       "UpdateStudyLogDto": {
@@ -226,9 +222,6 @@
             "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
           },
           "notes": {
-            "type": "string"
-          },
-          "place": {
             "type": "string"
           }
         }
