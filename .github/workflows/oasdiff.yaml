@@ -1,0 +1,24 @@
+name: oasdiff
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  breaking:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # 比べる相手（main）の commit を取ってくる。fetch-depth: 0 は要らない
+      - run: git fetch --depth=1 origin ${{ github.base_ref }}
+
+      - uses: oasdiff/oasdiff-action/breaking@v0
+        with:
+          base: 'origin/${{ github.base_ref }}:openapi.json'
+          revision: 'HEAD:openapi.json'
+          fail-on: ERR
+          review: false
