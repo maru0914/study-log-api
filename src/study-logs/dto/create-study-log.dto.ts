@@ -32,4 +32,9 @@ export class CreateStudyLogDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  // ⑤ 場所（23回目の試し。必須にすると今のクライアントが送る形が通らなくなる）
+  @IsNotEmpty()
+  @IsString()
+  place: string;
 }
